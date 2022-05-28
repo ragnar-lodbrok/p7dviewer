@@ -66,7 +66,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 //LINUX specific definitions & types
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__wasm__)
     #define UTF8_ENCODING
     #define G_OS_LINUX
 
