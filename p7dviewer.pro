@@ -15,7 +15,7 @@ greaterThan(QT_MINOR_VERSION, 4) { # >= 5.5
 unix:CONFIG += object_parallel_to_source
 unix:OBJECTS_DIR = .
 
-QMAKE_LFLAGS += -Wl,--no-as-needed # ?
+QMAKE_LFLAGS += -Wl,--no-as-needed, -fexceptions# ?
 
 SOURCES  += main.cpp \
             main_window.cpp \

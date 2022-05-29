@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QLabel>
 #include <QTableView>
+#include <QPushButton>
 #include "p7d_model.h"
 
 namespace p7 {
@@ -19,6 +20,7 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
 
     void importP7Dump(const QString & filename);
+    void importP7Dump(const QByteArray & fileContent);
 
 private:
 
@@ -29,6 +31,8 @@ private:
 
 class CentralWidget : public QWidget
 {
+    Q_OBJECT
+
 public:
     CentralWidget(p7::P7DumpModel * model,
                   QWidget *parent = nullptr);
@@ -43,6 +47,10 @@ protected:
 private:
 
     void createWidgets();
+
+    Q_SLOT void onOpenFileButtonClicked();
+
+    QPushButton * _openFileButton;
 
     QLabel * _hostNameLabel;
     QLabel * _hostNameValue;

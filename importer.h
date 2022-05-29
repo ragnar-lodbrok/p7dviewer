@@ -247,10 +247,11 @@ public:
     {
         // TODO: seems we can have multiple threads with the same id when thread
         // stopped
-        try {
-            return _threads.at(id);
-        } catch (const std::out_of_range & ex) {
-            (void)ex;
+
+        auto it = _threads.find(id);
+        if (it != _threads.end()) {
+            return it->second;
+        } else {
             return _unknownThread;
         }
     }
@@ -262,10 +263,10 @@ public:
 
     inline const p7ModuleInfo & moduleById(uint16_t id) const
     {
-        try {
-            return _modules.at(id);
-        } catch (const std::out_of_range & ex) {
-            (void)ex;
+        auto it = _modules.find(id);
+        if (it != _modules.end()) {
+            return it->second;
+        } else {
             return _unknownModule;
         }
     }
@@ -277,10 +278,10 @@ public:
 
     inline p7DescriptionInfo * descriptionById(uint16_t id) const
     {
-        try {
-            return _descriptions.at(id).get();
-        } catch (const std::out_of_range & ex) {
-            (void)ex;
+        auto it = _descriptions.find(id);
+        if (it != _descriptions.end()) {
+            return it->second.get();
+        } else {
             return nullptr;
         }
     }
@@ -307,10 +308,10 @@ public:
 
     CFormatter * formatterById(uint16_t id) const
     {
-        try {
-            return _formatters.at(id).get();
-        } catch (const std::out_of_range & ex) {
-            (void)ex;
+        auto it = _formatters.find(id);
+        if (it != _formatters.end()) {
+            return it->second.get();
+        } else {
             return nullptr;
         }
     }
@@ -367,6 +368,27 @@ public:
                                        sizeof(uint8_t),
                                        fileSize, _file);
 
+        return importBufferToData(data);
+    }
+
+    p7DumpData import(const QByteArray &fileContent)
+    {
+        clear();
+
+        p7DumpData data;
+
+        _allDataBuffer.resize(fileContent.size());
+        memcpy(_allDataBuffer.data(), fileContent.data(), fileContent.size());
+        _szData_Size = fileContent.size();
+
+        return importBufferToData(data);
+
+    }
+
+private:
+
+    p7DumpData importBufferToData(p7DumpData & data)
+    {
         if (sizeof(sP7File_Header) >= _szData_Size) {
             std::cerr << "File size less than header size should be";
             return data;
@@ -393,8 +415,6 @@ public:
 
         return data;
     }
-
-private:
 
     void clear()
     {
@@ -528,10 +548,15 @@ private:
         traceData.threadId = l_pTrace->dwThreadID;
 
         p7DescriptionInfo * desc = data.descriptionById(traceData.id);
-        traceData.filename = desc->filename;
-        traceData.function = desc->function;
-        traceData.moduleId = desc->moduleId;
-        traceData.line     = desc->line;
+        if (desc) {
+            traceData.filename = desc->filename;
+            traceData.function = desc->function;
+            traceData.moduleId = desc->moduleId;
+            traceData.line     = desc->line;
+        } else {
+            traceData.filename
+                = QString("Unable to find description %1").arg(traceData.id);
+        }
 
         const p7ModuleInfo & moduleInfo = data.moduleById(traceData.moduleId);
         traceData.moduleName = moduleInfo.name;

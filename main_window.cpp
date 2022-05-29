@@ -23,6 +23,15 @@ void MainWindow::importP7Dump(const QString & filename)
     _centralWidget->showModelData();
 }
 
+void MainWindow::importP7Dump(const QByteArray & fileContent)
+{
+    p7::p7DumpImporter importer;
+    p7::p7DumpData data = importer.import(fileContent);
+
+    _model.setDumpData(std::move(data));
+    _centralWidget->showModelData();
+}
+
 CentralWidget::CentralWidget(p7::P7DumpModel * model,
                              QWidget *parent)
     : QWidget(parent)
@@ -37,7 +46,7 @@ void CentralWidget::dragEnterEvent(QDragEnterEvent *event)
 {
     if (event->mimeData()->hasUrls()) {
         QList<QUrl> urls = event->mimeData()->urls();
-        for (const QUrl url : urls) {
+        for (const QUrl & url : urls) {
             if (url.fileName().endsWith(".p7d")) {
                 event->acceptProposedAction();
                 break;
@@ -50,7 +59,7 @@ void CentralWidget::dropEvent(QDropEvent *event)
 {
     if (event->mimeData()->hasUrls()) {
         QList<QUrl> urls = event->mimeData()->urls();
-        for (const QUrl url : urls) {
+        for (const QUrl & url : urls) {
             if (url.fileName().endsWith(".p7d")) {
                 event->acceptProposedAction();
                 static_cast<MainWindow *>(parent())->importP7Dump(url.path());
@@ -68,6 +77,10 @@ void CentralWidget::createWidgets()
 
     QHBoxLayout * processDataLayout = new QHBoxLayout();
 
+    _openFileButton = new QPushButton(tr("Browse..."));
+    connect(_openFileButton, &QAbstractButton::clicked,
+            this, &CentralWidget::onOpenFileButtonClicked);
+
     _hostNameLabel = new QLabel(tr("Host:"));
     _hostNameValue = new QLabel();
 
@@ -75,6 +88,9 @@ void CentralWidget::createWidgets()
     _processNameValue = new QLabel();
 
     _processDateTimeValue = new QLabel();
+
+    processDataLayout->addWidget(_openFileButton);
+    processDataLayout->addStretch(1);
 
     processDataLayout->addWidget(_hostNameLabel);
     processDataLayout->addWidget(_hostNameValue);
@@ -104,6 +120,20 @@ void CentralWidget::createWidgets()
     mainLayout->setAlignment(processDataLayout, Qt::AlignTop | Qt::AlignLeft);
 
     setLayout(mainLayout);
+}
+
+void CentralWidget::onOpenFileButtonClicked()
+{
+
+    QFileDialog::getOpenFileContent("P7 Dump Files (*.p7d)",
+                                    [this](const QString &fileName,
+                                    const QByteArray &fileContent) {
+        if (fileName.isEmpty()) {
+            return;
+        } else {
+            static_cast<MainWindow *>(parent())->importP7Dump(fileContent);
+        }
+    });
 }
 
 void CentralWidget::showModelData()

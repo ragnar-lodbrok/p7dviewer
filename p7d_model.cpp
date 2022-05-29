@@ -204,7 +204,7 @@ int P7DumpModel::columnWidth(int columnIndex) const
     case Columns::Thread:
         return 150;
     case Columns::File:
-        return 800;
+        return 1000;
     case Columns::Function:
         return 700;
     case Columns::Time:
