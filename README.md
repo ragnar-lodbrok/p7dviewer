@@ -2,6 +2,8 @@
 
 A very simple viewer of *.p7d (P7 Dump) files made by open source [P7](http://baical.net/p7.html) logger library.
 
+[Browser (WASM) Version](https://ragnar-lodbrok.github.io/p7dviewer/wasm_build/p7dviewer.html) 
+
 ## Limitations
 
 1. Linux only at the moment.
