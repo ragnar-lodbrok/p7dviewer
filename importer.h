@@ -444,6 +444,9 @@ private:
     void readData(p7DumpData & data)
     {
 
+        uint32_t firstTraceChannelID = static_cast<uint32_t>(-1);
+        std::map<uint32_t, uint8_t *> _streamsData; // start of all streams
+
         while(_szData_Offs + sizeof(sH_User_Data) <= _allDataBuffer.size())
         {
             sH_User_Data *l_pHeader = (sH_User_Data *)(_allDataBuffer.data()
@@ -453,13 +456,35 @@ private:
                 break;
             }
 
-            QByteArray dataChunk(
-                  (const char *)(_allDataBuffer.data()
-                   + _szData_Offs
-                   + sizeof(sH_User_Data)),
-                   l_pHeader->dwSize - sizeof(sH_User_Data));
+            uint32_t channelID = l_pHeader->dwChannel_ID;
+            auto streamStartIt = _streamsData.find(channelID);
+            if (streamStartIt == _streamsData.end()) {
+                _streamsData[channelID]
+                        = (uint8_t*)l_pHeader + sizeof(sH_User_Data);
+                streamStartIt = _streamsData.find(channelID);
+            }
 
-            processDataChunk(dataChunk, data);
+            sP7Ext_Header * streamHeader = (sP7Ext_Header*)(streamStartIt->second);
+            eP7User_Type streamType = (eP7User_Type)streamHeader->dwType;
+
+            // We support only trace streams at the moment
+            if (streamType == EP7USER_TYPE_TRACE) {
+                if (firstTraceChannelID == static_cast<uint32_t>(-1)) {
+                    firstTraceChannelID = channelID;
+                }
+
+                // process only first trace stream
+                if (channelID == firstTraceChannelID) {
+
+                    QByteArray dataChunk(
+                          (const char *)(_allDataBuffer.data()
+                           + _szData_Offs
+                           + sizeof(sH_User_Data)),
+                           l_pHeader->dwSize - sizeof(sH_User_Data));
+
+                    processDataChunk(dataChunk, data);
+                }
+            }
 
             _szData_Offs += l_pHeader->dwSize;
         }

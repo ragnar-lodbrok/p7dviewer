@@ -107,6 +107,7 @@ void CentralWidget::createWidgets()
     _traceTable->verticalHeader()->hide();
     _traceTable->horizontalHeader()->setHighlightSections(false);
     _traceTable->verticalHeader()->setDefaultSectionSize(24);
+    _traceTable->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     _traceTable->setSortingEnabled(false);
     _traceTable->setModel(_model);
 
